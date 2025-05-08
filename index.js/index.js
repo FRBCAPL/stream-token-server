@@ -100,6 +100,11 @@ app.post('/verify-pin', async (req, res) => {
   }
 });
 
+// --- TEST ROUTE ---
+app.get('/test', (req, res) => {
+  res.send('Backend is alive!');
+});
+
 // --- Listen on the correct port for Render and local ---
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
