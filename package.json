@@ -1,13 +1,23 @@
 {
+<<<<<<< HEAD
   "name": "stream-chat-pin-backend",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+=======
+  "name": "stream-token-server",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+>>>>>>> eb61213d9dba967914595077c42b4870923e2497
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+<<<<<<< HEAD
   "dependencies": {
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
@@ -18,4 +28,13 @@
     "stream-chat": "^8.60.0"
   },
   "description": ""
+=======
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "stream-chat": "^8.60.0"
+  }
+>>>>>>> eb61213d9dba967914595077c42b4870923e2497
 }
