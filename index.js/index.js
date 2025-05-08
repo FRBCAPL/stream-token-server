@@ -6,9 +6,23 @@ const { StreamChat } = require('stream-chat');
 
 const app = express();
 
-// --- CORS: Only allow your frontend Render site ---
+// --- CORS: Allow multiple origins (deployed + local + GoDaddy) ---
+const allowedOrigins = [
+  'https://stream-chat-frontend.onrender.com',
+  'http://localhost:3000',
+  'https://www.frusapl.com'
+];
+
 app.use(cors({
-  origin: 'https://stream-chat-frontend.onrender.com',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like curl or Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 
@@ -86,5 +100,6 @@ app.post('/verify-pin', async (req, res) => {
   }
 });
 
+// --- Listen on the correct port for Render and local ---
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
