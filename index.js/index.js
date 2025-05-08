@@ -1,3 +1,11 @@
+process.on('uncaughtException', function (err) {
+  console.error('Uncaught Exception:', err);
+});
+process.on('unhandledRejection', function (reason, promise) {
+  console.error('Unhandled Rejection:', reason);
+});
+console.log("Starting index.js");
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -5,44 +13,21 @@ const { google } = require('googleapis');
 const { StreamChat } = require('stream-chat');
 
 const app = express();
-
-// --- CORS: Allow multiple origins (deployed + local + GoDaddy) ---
-const allowedOrigins = [
-  'https://stream-chat-frontend.onrender.com',
-  'http://localhost:3000',
-  'https://www.frusapl.com'
-];
-
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like curl or Postman)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      return callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-}));
-
+app.use(cors());
 app.use(express.json());
 
 const SHEET_ID = '1tvMgMHsRwQxsR6lMNlSnztmwpK7fhZeNEyqjTqmRFRc';
 const STREAM_API_KEY = 'emnbag2b9jt4';
 const STREAM_API_SECRET = 't8ehrbr2yz5uv84u952mkud9bnjd42zcggwny8at2e9qmvyc5aahsfqexrjtxa5g';
 
-// --- Google Sheets Auth ---
 const auth = new google.auth.GoogleAuth({
   keyFile: 'service-account.json',
   scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
 });
 const sheets = google.sheets({ version: 'v4', auth });
 
-// --- Stream Chat Server Client ---
 const serverClient = StreamChat.getInstance(STREAM_API_KEY, STREAM_API_SECRET);
 
-// --- Helper: Find user by PIN ---
 async function getUserByPin(pin) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SHEET_ID,
@@ -62,7 +47,6 @@ async function getUserByPin(pin) {
   return null;
 }
 
-// --- POST /verify-pin ---
 app.post('/verify-pin', async (req, res) => {
   const { pin } = req.body;
   if (!pin) return res.status(400).json({ error: 'PIN is required' });
@@ -78,19 +62,12 @@ app.post('/verify-pin', async (req, res) => {
       name: user.name,
       members: [user.id],
     });
-    await userChannel.create().catch(() => {});
+    await userChannel.create().catch(() => {}); // ignore if already exists
 
     // Ensure user is member of general channel
     const generalChannel = serverClient.channel('messaging', 'general', { name: 'General' });
-    await generalChannel.create().catch(() => {});
-
-    // Fetch current members
-    const channelState = await generalChannel.query({ watch: false, state: true });
-    const currentMemberIds = (channelState.members || []).map(m => m.user_id);
-
-    if (!currentMemberIds.includes(user.id)) {
-      await generalChannel.addMembers([user.id]);
-    }
+    await generalChannel.create().catch(() => {}); // ignore if exists
+    await generalChannel.addMembers([user.id]);
 
     const token = serverClient.createToken(user.id);
 
@@ -100,11 +77,6 @@ app.post('/verify-pin', async (req, res) => {
   }
 });
 
-// --- TEST ROUTE ---
-app.get('/test', (req, res) => {
-  res.send('Backend is alive!');
-});
-
-// --- Listen on the correct port for Render and local ---
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+
