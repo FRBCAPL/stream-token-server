@@ -13,7 +13,18 @@ const { google } = require('googleapis');
 const { StreamChat } = require('stream-chat');
 
 const app = express();
-app.use(cors());
+
+// --- CORS setup: allow local dev and GitHub Pages frontend ---
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://frbcapl.github.io'
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
+
 app.use(express.json());
 
 const SHEET_ID = '1tvMgMHsRwQxsR6lMNlSnztmwpK7fhZeNEyqjTqmRFRc';
@@ -79,4 +90,3 @@ app.post('/verify-pin', async (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
-
